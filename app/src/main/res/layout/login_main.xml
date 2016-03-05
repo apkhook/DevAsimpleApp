@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:whatever="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/include"
+        layout="@layout/view_toolbar" />
+
+    <LinearLayout
+        android:id="@+id/usernum"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/include"
+        android:layout_marginTop="50dip"
+        android:gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="手机号:" />
+
+        <EditText
+            android:id="@+id/phone"
+            android:layout_width="wrap_content"
+            android:layout_height="33dip"
+            android:layout_marginLeft="10dip"
+            android:background="@drawable/bg_edittext"
+            android:ems="10"
+            android:hint="请输入手机号"
+            android:inputType="number"
+            whatever:testErrorString="手机号格式错误" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/usercode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/usernum"
+        android:layout_marginTop="50dip"
+        android:gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="验证码:" />
+
+        <EditText
+            android:id="@+id/code"
+            android:layout_width="wrap_content"
+            android:layout_height="33dip"
+            android:layout_marginLeft="10dip"
+            android:background="@drawable/bg_edittext"
+            android:ems="10"
+            android:hint="请输入验证码"
+
+            android:inputType="number"
+
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/usercode"
+        android:layout_marginTop="50dip"
+        android:gravity="center_horizontal">
+
+        <Button
+            android:id="@+id/getcode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/actionsheet_gray"
+            android:clickable="false"
+
+            android:text="获取" />
+
+        <Button
+            android:id="@+id/verify"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="登录" />
+
+    </LinearLayout>
+
+
+</RelativeLayout>
