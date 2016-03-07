@@ -2,6 +2,10 @@ package com.qtfreet.devasimpleapp.ui;
 
 import android.app.Activity;
 import android.app.Application;
+import android.widget.Toast;
+
+import com.qtfreet.devasimpleapp.R;
+import com.qtfreet.devasimpleapp.utils.Utils;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -44,5 +48,8 @@ public class App extends Application {
     public void onCreate() {
         // TODO Auto-generated method stub
         super.onCreate();
+        if(!Utils.isWifi(this)){
+            Toast.makeText(this, R.string.nowifi,Toast.LENGTH_SHORT).show();
+        }
     }
 }

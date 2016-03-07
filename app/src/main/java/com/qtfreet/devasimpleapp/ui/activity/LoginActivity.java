@@ -63,7 +63,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             if (toolbarTitle != null) {
                 getSupportActionBar().setDisplayShowTitleEnabled(false);
-                toolbarTitle.setText("用户登录");
+                toolbarTitle.setText(R.string.user_login);
             }
         }
         btn_getcode.setOnClickListener(this);
@@ -109,7 +109,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 //验证码验证成功，服务器的反馈事件
                 //实例化短信监听器
                 Looper.prepare();
-                Toast.makeText(getApplicationContext(), "验证成功", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), R.string.verify_succ, Toast.LENGTH_SHORT).show();
                 Looper.loop();
                 Log.v("cc", "验证成功");
                 register();
@@ -117,7 +117,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 //手机请求验证码，服务器在发送验证码之后，给与的网络反馈
                 isSendMsg = true;
                 Looper.prepare();
-                Toast.makeText(getApplicationContext(), "已经发送验证码", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), R.string.send_succ, Toast.LENGTH_SHORT).show();
                 Log.v("cc", "已经发送验证码");
                 Looper.loop();
             }

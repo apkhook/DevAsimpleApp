@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void initData() {
 
         List<String> titles = new ArrayList<>();
-        titles.add("福利");
+        titles.add("Gankio");
         titles.add("Android");
         titles.add("iOS");
 
@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             setSupportActionBar(toolbar);
             if (toolbarTitle != null) {
                 getSupportActionBar().setDisplayShowTitleEnabled(false);
-                toolbarTitle.setText("首页");
+                toolbarTitle.setText(R.string.main_title);
             }
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -103,14 +103,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onClick(View v) {
                 new ActionSheetDialog(MainActivity.this)
                         .builder()
-                        .setTitle("更换头像")
+                        .setTitle(getString(R.string.change_header))
                         .setCancelable(false)
-                        .setCanceledOnTouchOutside(false).addSheetItem("拍照", ActionSheetDialog.SheetItemColor.Blue, new ActionSheetDialog.OnSheetItemClickListener() {
+                        .setCanceledOnTouchOutside(false).addSheetItem(getString(R.string.take_pic), ActionSheetDialog.SheetItemColor.Blue, new ActionSheetDialog.OnSheetItemClickListener() {
                     @Override
                     public void onClick(int which) {
                         Toast.makeText(MainActivity.this, "该功能并没有实现=。=", Toast.LENGTH_SHORT).show();
                     }
-                }).addSheetItem("从图库选择", ActionSheetDialog.SheetItemColor.Blue, new ActionSheetDialog.OnSheetItemClickListener() {
+                }).addSheetItem(getString(R.string.take_from_pic), ActionSheetDialog.SheetItemColor.Blue, new ActionSheetDialog.OnSheetItemClickListener() {
                     @Override
                     public void onClick(int which) {
                         Toast.makeText(MainActivity.this, "该功能并没有实现=。=", Toast.LENGTH_SHORT).show();

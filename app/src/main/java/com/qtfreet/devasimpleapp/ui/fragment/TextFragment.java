@@ -67,7 +67,7 @@ public class TextFragment extends Fragment implements SwipeRefreshLayout.OnRefre
             super.handleMessage(msg);
             switch (msg.getData().getInt("state")) {
                 case REQUEST_FAIL:
-                    Toast.makeText(mContext, "获取数据失败", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mContext, R.string.request_error, Toast.LENGTH_SHORT).show();
                     if (isLoadMore) {
                         isLoadMore = false;
                     }
@@ -227,7 +227,7 @@ public class TextFragment extends Fragment implements SwipeRefreshLayout.OnRefre
         DataInfo dataInfo = gson.fromJson(json, DataInfo.class);
 
         if (dataInfo == null || dataInfo.error) {
-            Toast.makeText(mContext, "获取数据失败", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, R.string.request_error, Toast.LENGTH_SHORT).show();
             if (isLoadMore) {
                 isLoadMore = false;
             }

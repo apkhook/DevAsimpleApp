@@ -5,4 +5,19 @@
     <string name="download_success">下载完成</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nowifi">当前是移动网络，请注意你的流量</string>
+    <string name="request_error">获取数据失败</string>
+    <string name="save_image">保存到本地</string>
+    <string name="share_image">分享</string>
+    <string name="save_succ">图片已保存在SD卡下的DCIM/PicSave文件夹下</string>
+    <string name="save_error">保存失败，请确保网络无问题</string>
+    <string name="sd_error">请确认SD卡是否可用</string>
+    <string name="first_page">已经是第一页了</string>
+    <string name="main_title">首页</string>
+    <string name="change_header">更换头像</string>
+    <string name="take_pic">拍照</string>
+    <string name="take_from_pic">从图库选择</string>
+    <string name="user_login">用户登录</string>
+    <string name="verify_succ">验证成功</string>
+    <string name="send_succ">已经发送验证码</string>
 </resources>

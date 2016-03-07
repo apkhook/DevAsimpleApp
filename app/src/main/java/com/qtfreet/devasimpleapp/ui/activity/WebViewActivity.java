@@ -81,7 +81,7 @@ public class WebViewActivity extends AppCompatActivity implements SwipeRefreshLa
                 webview.goBack();
                 return true;
             } else {
-                Toast.makeText(WebViewActivity.this, "已经是第一页了", Toast.LENGTH_SHORT).show();
+                Toast.makeText(WebViewActivity.this, R.string.first_page, Toast.LENGTH_SHORT).show();
                 return false;
             }
         }

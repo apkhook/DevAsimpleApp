@@ -26,6 +26,8 @@ import com.qtfreet.devasimpleapp.data.net.BearOkhttpUtils;
 import com.qtfreet.devasimpleapp.ui.activity.DetailActivity;
 import com.qtfreet.devasimpleapp.ui.adapter.GirlsAdapter;
 import com.qtfreet.devasimpleapp.ui.adapter.OnMeiziClickListener;
+import com.qtfreet.devasimpleapp.utils.SaveImageTask;
+import com.qtfreet.devasimpleapp.wiget.ActionSheetDialog;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -271,6 +273,30 @@ public class GirlsFragment extends Fragment implements SwipeRefreshLayout.OnRefr
         Intent intent = new Intent(getActivity(), DetailActivity.class);
         intent.putExtra("url", url);
         startActivity(intent);
+    }
+
+    @Override
+    public void onMeiziLongClick(View itemView, final int position) {
+        new ActionSheetDialog(getActivity())
+                .builder()
+                .setCancelable(false)
+                .setCanceledOnTouchOutside(true).addSheetItem(mContext.getString(R.string.save_image), ActionSheetDialog.SheetItemColor.Blue, new ActionSheetDialog.OnSheetItemClickListener() {
+            @Override
+            public void onClick(int which) {
+
+                String time = imageInfos.get(position).getTime();
+                String url = imageInfos.get(position).getUrl();
+                SaveImageTask saveImageUtils = new SaveImageTask(getActivity(), time);
+                saveImageUtils.execute(url);
+
+
+            }
+        }).addSheetItem(mContext.getString(R.string.share_image), ActionSheetDialog.SheetItemColor.Blue, new ActionSheetDialog.OnSheetItemClickListener() {
+            @Override
+            public void onClick(int which) {
+
+            }
+        }).show();
     }
 
 }
