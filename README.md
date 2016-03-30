@@ -6,6 +6,20 @@
 
 感谢所有的开源作者
 
+####使用到的开源项目
+#####网络请求框架
+[retrofit2](https://github.com/square/retrofit)  
+[retrofit2](https://github.com/square/retrofit)  
+[retrofit2](https://github.com/square/retrofit)  
+
+#####json解析
+[Gson](https://github.com/google/gson)  
+
+
+
+#####图片加载
+
+
 目前截图
 
 ![image](https://raw.githubusercontent.com/Qrilee/DevAsimpleApp/master/screenshots/pic.png)
