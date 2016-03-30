@@ -1,25 +1,22 @@
 package com.qtfreet.devasimpleapp.ui.activity;
 
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
+import android.widget.ProgressBar;
 
 import com.qtfreet.devasimpleapp.R;
 import com.qtfreet.devasimpleapp.ui.App;
-
-import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
 
 /**
  * Created by qtfreet on 2016/3/5.
  */
 public class WebViewActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
-    MaterialProgressBar progress;
+    ProgressBar progressbar;
     WebView webview;
     private SwipeRefreshLayout refresh;
 
@@ -30,27 +27,14 @@ public class WebViewActivity extends AppCompatActivity implements SwipeRefreshLa
         App.getInstance().addActivity(WebViewActivity.this);
         initview();
     }
-
     private void initview() {
-
-
         String url = getIntent().getExtras().getString("url");
         webview = (WebView) findViewById(R.id.webview);
-        progress = (MaterialProgressBar) findViewById(R.id.indeterminate_progress_library);
+        progressbar = (ProgressBar) findViewById(R.id.pb_search_wait);
         refresh = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh);
-
-
         refresh.setColorSchemeResources(android.R.color.holo_blue_light, android.R.color.holo_red_light, android.R
                 .color.holo_orange_light, android.R.color.holo_green_light);
         refresh.setOnRefreshListener(this);
-
-        final FloatingActionButton f = (FloatingActionButton) findViewById(R.id.fab);
-        f.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                WebViewActivity.this.finish();
-            }
-        });
         webview.loadUrl(url);
         webview.setWebViewClient(new WebViewClient() {
 
@@ -64,7 +48,7 @@ public class WebViewActivity extends AppCompatActivity implements SwipeRefreshLa
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                progress.setVisibility(View.GONE);
+                progressbar.setVisibility(View.GONE);
                 showRefreshing(false);
 
             }
@@ -81,8 +65,8 @@ public class WebViewActivity extends AppCompatActivity implements SwipeRefreshLa
                 webview.goBack();
                 return true;
             } else {
-                Toast.makeText(WebViewActivity.this, R.string.first_page, Toast.LENGTH_SHORT).show();
-                return false;
+                this.finish();
+                return true;
             }
         }
         return super.onKeyDown(keyCode, event);

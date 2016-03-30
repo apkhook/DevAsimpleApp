@@ -1,6 +1,5 @@
 package com.qtfreet.devasimpleapp.ui.activity;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
@@ -12,7 +11,6 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.KeyEvent;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
@@ -95,7 +93,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
         View headerView = navigationView.getHeaderView(0);
         ImageView header = (ImageView) headerView.findViewById(R.id.header_view);
         header.setOnClickListener(new View.OnClickListener() {
@@ -118,34 +115,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }).show();
             }
         });
-
-
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.login) {
-            startActivity(LoginActivity.class);
-            return true;
-        } else if (id == R.id.exit) {
-            App.getInstance().exit();
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_main, menu);
-        return super.onCreateOptionsMenu(menu);
-
-    }
-
-
-    private void startActivity(Class c) {
-        Intent i = new Intent(MainActivity.this, c);
-        startActivity(i);
     }
 
     @Override
@@ -163,8 +132,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-
         if (id == R.id.setting) {
+//            startActivity(SettingActivity.class);
             Toast.makeText(MainActivity.this, "该功能并没有实现=。=", Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_check) {
             CheckUpdate.getInstance().startCheck(this);
@@ -184,6 +153,4 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             super.onBackPressed();
         }
     }
-
-
 }

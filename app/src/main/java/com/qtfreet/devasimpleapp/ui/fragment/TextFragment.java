@@ -2,39 +2,37 @@ package com.qtfreet.devasimpleapp.ui.fragment;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.ShareCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.qtfreet.devasimpleapp.R;
-import com.qtfreet.devasimpleapp.ui.activity.WebViewActivity;
-import com.qtfreet.devasimpleapp.ui.adapter.ContentAdapter;
 import com.qtfreet.devasimpleapp.data.bean.ContentItemInfo;
 import com.qtfreet.devasimpleapp.data.bean.DataInfo;
 import com.qtfreet.devasimpleapp.data.net.Api;
-import com.qtfreet.devasimpleapp.data.net.BearOkhttpUtils;
-import com.google.gson.Gson;
+import com.qtfreet.devasimpleapp.data.net.ApiService;
+import com.qtfreet.devasimpleapp.ui.activity.WebViewActivity;
+import com.qtfreet.devasimpleapp.ui.adapter.ContentAdapter;
 
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.Response;
+import okhttp3.OkHttpClient;
+import retrofit2.Call;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * Created by Bear on 2016/1/29.
@@ -52,9 +50,6 @@ public class TextFragment extends Fragment implements SwipeRefreshLayout.OnRefre
 
     private int hasLoadPage = 0;
     private boolean isLoadMore = false;
-
-    private String requestUrl = Api.GANK_API_ADROID;
-
     private SwipeRefreshLayout refresh;
     private RecyclerView recyclerView;
     private List<ContentItemInfo> itemInfos;
@@ -73,18 +68,13 @@ public class TextFragment extends Fragment implements SwipeRefreshLayout.OnRefre
                     }
                     break;
                 case REQUEST_SUCCESS:
-                    if (handleJson(msg.getData().getString("json"))) {
-                        hasLoadPage++;
-                        if (hasLoadPage == 1) {
-                            sp.edit().putString("json", msg.getData().getString("json")).apply();
-                        }
-                    }
+                    hasLoadPage++;
                     break;
             }
             showRefreshing(false);
         }
     };
-    private SharedPreferences sp;
+
 
     public static TextFragment newFragment(int flag) {
         Bundle bundle = new Bundle();
@@ -94,21 +84,21 @@ public class TextFragment extends Fragment implements SwipeRefreshLayout.OnRefre
         return textFragment;
     }
 
+    int type = 0;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         mContext = getActivity();
-        sp = mContext.getSharedPreferences("data", Context.MODE_PRIVATE);
-
-        int type = getArguments().getInt("type", TYPE_ANDROID);
+        type = getArguments().getInt("type", TYPE_ANDROID);
         if (type == TYPE_ANDROID) {
-            requestUrl = Api.GANK_API_ADROID;
+            url = "Android";
         } else if (type == TYPE_IOS) {
-            requestUrl = Api.GANK_API_IOS;
+            url = "iOS";
         }
     }
+
+    String url = "";
 
 
     @Nullable
@@ -199,64 +189,53 @@ public class TextFragment extends Fragment implements SwipeRefreshLayout.OnRefre
 
     public void requestData(int page) {
         showRefreshing(true);
-        BearOkhttpUtils.asynGet(requestUrl + "/" + REQUEST_NUM + "/" + page, new Callback() {
+        OkHttpClient client = new OkHttpClient.Builder().connectTimeout(10, TimeUnit.SECONDS).writeTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .build();
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(Api.GANK_API).client(client)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        ApiService apiService = retrofit.create(ApiService.class);
+
+        Call<DataInfo> call = apiService.DataText(url, "10", page);
+        call.enqueue(new retrofit2.Callback<DataInfo>() {
             @Override
-            public void onFailure(Call call, IOException e) {
-                Bundle bundle = new Bundle();
-                bundle.putInt("state", REQUEST_FAIL);
-                Message msg = Message.obtain();
-                msg.setData(bundle);
-                handler.sendMessage(msg);
+            public void onResponse(retrofit2.Call<DataInfo> call, retrofit2.Response<DataInfo> response) {
+                if (response.body() == null) {
+                    Toast.makeText(mContext, R.string.request_error, Toast.LENGTH_SHORT).show();
+                    if (isLoadMore) {
+                        isLoadMore = false;
+                    }
+                    return;
+                }
+                List<DataInfo.ResultsEntity> results = response.body().results;
+                List<ContentItemInfo> list = new ArrayList<>();
+                for (DataInfo.ResultsEntity entity : results) {
+                    ContentItemInfo info = new ContentItemInfo();
+                    info.setContent(entity.desc);
+                    info.setUrl(entity.url);
+                    info.setWho(entity.who);
+                    info.setTime(entity.publishedAt);
+                    list.add(info);
+                }
+                if (isLoadMore) {
+                    itemInfos.addAll(list);
+                    isLoadMore = false;
+                } else {
+                    itemInfos.clear();
+                    itemInfos.addAll(list);
+                }
+                mAdapter.notifyDataSetChanged();
+                handler.sendEmptyMessage(REQUEST_SUCCESS);
+
             }
 
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                Bundle bundle = new Bundle();
-                bundle.putInt("state", REQUEST_SUCCESS);
-                bundle.putString("json", response.body().string());
-                Message msg = Message.obtain();
-                msg.setData(bundle);
-                handler.sendMessage(msg);
+            public void onFailure(retrofit2.Call<DataInfo> call, Throwable t) {
+                handler.sendEmptyMessage(REQUEST_FAIL);
             }
         });
     }
-
-
-    private boolean handleJson(String json) {
-        Gson gson = new Gson();
-        DataInfo dataInfo = gson.fromJson(json, DataInfo.class);
-
-        if (dataInfo == null || dataInfo.error) {
-            Toast.makeText(mContext, R.string.request_error, Toast.LENGTH_SHORT).show();
-            if (isLoadMore) {
-                isLoadMore = false;
-            }
-            return false;
-        } else {
-            List<DataInfo.ResultsEntity> results = dataInfo.results;
-//            itemInfos.clear();
-            List<ContentItemInfo> list = new ArrayList<>();
-            for (DataInfo.ResultsEntity entity : results) {
-                ContentItemInfo info = new ContentItemInfo();
-                info.setContent(entity.desc);
-                info.setUrl(entity.url);
-                info.setWho(entity.who);
-                info.setTime(entity.publishedAt);
-
-//                itemInfos.add(info);
-                list.add(info);
-            }
-            if (isLoadMore) {
-                itemInfos.addAll(list);
-                isLoadMore = false;
-            } else {
-                itemInfos.clear();
-                itemInfos.addAll(list);
-            }
-            mAdapter.notifyDataSetChanged();
-        }
-        return true;
-    }
-
 
 }

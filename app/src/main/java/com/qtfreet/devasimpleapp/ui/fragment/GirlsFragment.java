@@ -16,26 +16,27 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.google.gson.Gson;
 import com.qtfreet.devasimpleapp.R;
 import com.qtfreet.devasimpleapp.data.bean.DataInfo;
 import com.qtfreet.devasimpleapp.data.bean.ImageInfo;
 import com.qtfreet.devasimpleapp.data.db.GankDB;
 import com.qtfreet.devasimpleapp.data.net.Api;
-import com.qtfreet.devasimpleapp.data.net.BearOkhttpUtils;
+import com.qtfreet.devasimpleapp.data.net.ApiService;
+import com.qtfreet.devasimpleapp.data.net.httpUtils;
 import com.qtfreet.devasimpleapp.ui.activity.DetailActivity;
 import com.qtfreet.devasimpleapp.ui.adapter.GirlsAdapter;
 import com.qtfreet.devasimpleapp.ui.adapter.OnMeiziClickListener;
 import com.qtfreet.devasimpleapp.utils.SaveImageTask;
 import com.qtfreet.devasimpleapp.wiget.ActionSheetDialog;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-import okhttp3.Call;
-import okhttp3.Callback;
+import okhttp3.OkHttpClient;
 import okhttp3.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * Created by Bear on 2016/2/5.
@@ -43,7 +44,7 @@ import okhttp3.Response;
 public class GirlsFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener, OnMeiziClickListener {
 
     private static final int REQUEST_NUM = 5;
-    private static final String REQUEST_URL = Api.GANK_API_GRILS;
+    private static final String REQUEST_URL = Api.GANK_API;
     private static final int REQUEST_FAIL = 2;
     private static final int REQUEST_SUCCESS = 3;
     private static final int GET_URL_SUCCESS = 4;
@@ -66,6 +67,8 @@ public class GirlsFragment extends Fragment implements SwipeRefreshLayout.OnRefr
             switch (msg.getData().getInt("state")) {
                 case REQUEST_FAIL:
                     showRefreshing(false);
+                    isLoadMore = false;
+
                     break;
                 case GET_URL_SUCCESS:
                     showRefreshing(false);
@@ -104,10 +107,8 @@ public class GirlsFragment extends Fragment implements SwipeRefreshLayout.OnRefr
 
         mContext = getActivity();
         db = GankDB.getInstance(mContext);
-
         imageInfos = db.findImageInfoAll();
         imageCache = new ArrayList<>();
-
     }
 
     @Nullable
@@ -141,8 +142,9 @@ public class GirlsFragment extends Fragment implements SwipeRefreshLayout.OnRefr
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+
                     int[] positions = new int[mStaggeredGridLayoutManager.getSpanCount()];
-                    mStaggeredGridLayoutManager.findLastVisibleItemPositions(positions);
+                    positions = mStaggeredGridLayoutManager.findLastCompletelyVisibleItemPositions(positions);
                     for (int position : positions) {
                         if (position == mStaggeredGridLayoutManager.getItemCount() - 1) {
                             loadMore();
@@ -178,43 +180,48 @@ public class GirlsFragment extends Fragment implements SwipeRefreshLayout.OnRefr
 
     public void requestData(int page) {
         showRefreshing(true);
-        BearOkhttpUtils.asynGet(REQUEST_URL + "/" + REQUEST_NUM + "/" + page, new Callback() {
+        OkHttpClient client = new OkHttpClient.Builder().connectTimeout(10, TimeUnit.SECONDS).writeTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .build();
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(Api.GANK_API).client(client)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        ApiService apiService = retrofit.create(ApiService.class);
+        retrofit2.Call<DataInfo> call = apiService.Data("10", page);
+        call.enqueue(new retrofit2.Callback<DataInfo>() {
             @Override
-            public void onFailure(Call call, IOException e) {
-
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                if (response.code() == 200) {
-                    Gson gson = new Gson();
-                    DataInfo dataInfo = gson.fromJson(response.body().string(), DataInfo.class);
-                    if (dataInfo == null || dataInfo.error) {
-                        //error
-                        Message msg = Message.obtain();
-                        Bundle bundle = new Bundle();
-                        bundle.putInt("state", REQUEST_FAIL);
-                        msg.setData(bundle);
-                        handler.sendMessage(msg);
-                    } else {
-                        imageCache.clear();
-                        for (DataInfo.ResultsEntity entity : dataInfo.results) {
-                            ImageInfo info = new ImageInfo();
-                            info.setUrl(entity.url);
-                            info.setTime(entity.publishedAt);
-                            info.setWho(entity.who);
-
-                            imageCache.add(info);
-                        }
-                        Message msg = Message.obtain();
-                        Bundle bundle = new Bundle();
-                        bundle.putInt("state", GET_URL_SUCCESS);
-                        msg.setData(bundle);
-                        handler.sendMessage(msg);
+            public void onResponse(retrofit2.Call<DataInfo> call, retrofit2.Response<DataInfo> response) {
+                if (response.body() == null) {
+                    //error
+                    Message msg = Message.obtain();
+                    Bundle bundle = new Bundle();
+                    bundle.putInt("state", REQUEST_FAIL);
+                    msg.setData(bundle);
+                    handler.sendMessage(msg);
+                } else {
+                    imageCache.clear();
+                    for (DataInfo.ResultsEntity entity : response.body().results) {
+                        ImageInfo info = new ImageInfo();
+                        info.setUrl(entity.url);
+                        info.setTime(entity.publishedAt);
+                        info.setWho(entity.who);
+                        imageCache.add(info);
                     }
+                    Message msg = Message.obtain();
+                    Bundle bundle = new Bundle();
+                    bundle.putInt("state", GET_URL_SUCCESS);
+                    msg.setData(bundle);
+                    handler.sendMessage(msg);
                 }
             }
+
+            @Override
+            public void onFailure(retrofit2.Call<DataInfo> call, Throwable t) {
+
+            }
         });
+
     }
 
     @Override
@@ -225,7 +232,7 @@ public class GirlsFragment extends Fragment implements SwipeRefreshLayout.OnRefr
     public Point loadImageForSize(String url) {
         Point point = new Point();
         try {
-            Response response = BearOkhttpUtils.get(url);
+            Response response = httpUtils.get(url);
             if (response.code() == 200) {
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inJustDecodeBounds = true;
@@ -283,18 +290,10 @@ public class GirlsFragment extends Fragment implements SwipeRefreshLayout.OnRefr
                 .setCanceledOnTouchOutside(true).addSheetItem(mContext.getString(R.string.save_image), ActionSheetDialog.SheetItemColor.Blue, new ActionSheetDialog.OnSheetItemClickListener() {
             @Override
             public void onClick(int which) {
-
                 String time = imageInfos.get(position).getTime();
                 String url = imageInfos.get(position).getUrl();
                 SaveImageTask saveImageUtils = new SaveImageTask(getActivity(), time);
                 saveImageUtils.execute(url);
-
-
-            }
-        }).addSheetItem(mContext.getString(R.string.share_image), ActionSheetDialog.SheetItemColor.Blue, new ActionSheetDialog.OnSheetItemClickListener() {
-            @Override
-            public void onClick(int which) {
-
             }
         }).show();
     }

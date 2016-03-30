@@ -42,42 +42,38 @@ public class DownloadService extends IntentService {
         final String apkName = apkurl.substring(apkurl.lastIndexOf("/") + 1, apkurl.length());
         final String path = StorageUtils.getCacheDirectory(this).getPath();
         //使用Okhttp下载文件，抛弃之前的httpUrlConnetction，提升效率
-        OkHttpUtils//
-                .get()//
-                .url(apkurl)//
-                .build()//
-                .execute(new FileCallBack(path, apkName)//
-                {
-                    @Override
-                    public void inProgress(float progress) {
-                        int p = (int) (100 * progress);
-                        if (p == oldprogress) {
-                            //当进度一样时不更新通知栏，避免过度操作卡顿
-                        } else {
-                            updateProgress(p);
-                        }
-                        oldprogress = p;
-                        Log.e("TAG", p + "");
-                    }
+        OkHttpUtils.get().url(apkurl).build().execute(new FileCallBack(path, apkName) {
+            @Override
+            public void inProgress(float progress, long total) {
+                int p = (int) (100 * progress);
+                if (p == oldprogress) {
+                    //当进度一样时不更新通知栏，避免过度操作卡顿
+                } else {
+                    updateProgress(p);
+                }
+                oldprogress = p;
+                Log.e("TAG", p + "");
+            }
 
-                    @Override
-                    public void onError(Call call, Exception e) {
+            @Override
+            public void onError(Call call, Exception e) {
 
-                    }
+            }
 
-                    @Override
-                    public void onResponse(File file) {
-                        Log.e("TAG", "onResponse :" + file.getAbsolutePath());
-                        mBuilder.setContentText(getString(R.string.download_success)).setProgress(0, 0, false);
-                        mNotifyManager.cancelAll();
-                        //直接清除通知栏状态
-                        Intent installAPKIntent = new Intent(Intent.ACTION_VIEW);
-                        installAPKIntent.setDataAndType(Uri.fromFile(new File(path, apkName)), "application/vnd.android.package-archive");
-                        installAPKIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(installAPKIntent);
-                        //弹出安装界面
-                    }
-                });
+            @Override
+            public void onResponse(File response) {
+                Log.e("TAG", "onResponse :" + response.getAbsolutePath());
+                mBuilder.setContentText(getString(R.string.download_success)).setProgress(0, 0, false);
+                mNotifyManager.cancelAll();
+                //直接清除通知栏状态
+                Intent installAPKIntent = new Intent(Intent.ACTION_VIEW);
+                installAPKIntent.setDataAndType(Uri.fromFile(new File(path, apkName)), "application/vnd.android.package-archive");
+                installAPKIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(installAPKIntent);
+                //弹出安装界面
+            }
+        });
+
     }
 
     private void updateProgress(int progress) {
